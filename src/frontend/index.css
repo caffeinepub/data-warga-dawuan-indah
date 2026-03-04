@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("/assets/fonts/PlusJakartaSans-VariableFont_wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "General Sans";
+  src: url("/assets/fonts/GeneralSans-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+
+    /* Teal-based palette */
+    --background: 0.98 0.004 200;
+    --foreground: 0.15 0.025 220;
+    --card: 1 0 0;
+    --card-foreground: 0.15 0.025 220;
+    --popover: 1 0 0;
+    --popover-foreground: 0.15 0.025 220;
+
+    /* Primary: deep teal */
+    --primary: 0.38 0.095 210;
+    --primary-foreground: 0.99 0 0;
+
+    /* Secondary: light teal tint */
+    --secondary: 0.93 0.018 200;
+    --secondary-foreground: 0.38 0.095 210;
+
+    /* Muted */
+    --muted: 0.95 0.008 200;
+    --muted-foreground: 0.5 0.02 210;
+
+    /* Accent: warm gold */
+    --accent: 0.88 0.09 85;
+    --accent-foreground: 0.2 0.04 200;
+
+    /* Destructive */
+    --destructive: 0.55 0.22 25;
+    --destructive-foreground: 0.99 0 0;
+
+    /* Success */
+    --success: 0.52 0.15 150;
+    --success-foreground: 0.99 0 0;
+
+    /* Warning */
+    --warning: 0.72 0.17 65;
+    --warning-foreground: 0.2 0.04 70;
+
+    /* Borders */
+    --border: 0.88 0.015 200;
+    --input: 0.88 0.015 200;
+    --ring: 0.38 0.095 210;
+
+    /* Charts */
+    --chart-1: 0.38 0.095 210;
+    --chart-2: 0.52 0.15 150;
+    --chart-3: 0.72 0.17 65;
+    --chart-4: 0.55 0.22 25;
+    --chart-5: 0.6 0.12 280;
+
+    /* Sidebar — deep teal */
+    --sidebar: 0.22 0.055 215;
+    --sidebar-foreground: 0.92 0.01 200;
+    --sidebar-primary: 0.72 0.14 185;
+    --sidebar-primary-foreground: 0.15 0.04 215;
+    --sidebar-accent: 0.3 0.065 215;
+    --sidebar-accent-foreground: 0.95 0.008 200;
+    --sidebar-border: 0.3 0.04 215;
+    --sidebar-ring: 0.72 0.14 185;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "General Sans", "Plus Jakarta Sans", system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  }
+}
