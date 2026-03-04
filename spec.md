@@ -2,36 +2,55 @@
 
 ## Current State
 
-Aplikasi sudah memiliki:
-- Login dengan username dan password (SHA-256 hash)
-- Backend `setAdminCredentials(username, passwordHash)` yang bisa dipanggil siapa saja saat kredensial belum ada
-- Halaman Landing, Login, dan panel admin (Dashboard, Data KK, Data Warga, Iuran, Laporan)
-- Tidak ada halaman untuk setup kredensial admin pertama kali dari UI
+Aplikasi manajemen data warga perumahan dengan:
+- Login username/password dengan satu admin (single-user)
+- Setup awal credentials via halaman `/setup`
+- CRUD data KK, Warga, Iuran
+- Dashboard statistik bulanan
+- Laporan
+
+Sidebar admin memiliki menu: Dashboard, Data KK, Data Warga, Iuran, Laporan.
+
+Backend menyimpan satu `adminCredentials` (username + passwordHash). Tidak ada multi-user, tidak ada kontak pengurus, tidak ada logo yang bisa diubah.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Halaman `/setup` baru: form untuk mengatur username dan password admin pertama kali
-- Form berisi: field username, field password baru, field konfirmasi password
-- Validasi: password minimal 8 karakter, password dan konfirmasi harus sama
-- Setelah berhasil setup, redirect otomatis ke halaman login dengan pesan sukses
-- Tampilkan pesan jika kredensial sudah diatur sebelumnya (cek via `getAdminUsername()`)
-- Tambah link "Setup Admin" di halaman Login (di bagian bawah form, teks kecil)
+- **Multi-user management**: Backend mendukung beberapa user admin (array of users). Setiap user punya username, passwordHash, dan nama. Super-admin pertama bisa menambah/hapus user lain.
+- **Kontak pengurus**: Tipe `KontakPengurus` berisi nama, jabatan, noHP. Bisa disimpan/diambil dari backend. Digunakan di landing page dan halaman pengaturan.
+- **Logo URL**: Backend menyimpan satu string `logoUrl` yang bisa diupdate. Frontend menampilkan logo dari URL ini di sidebar dan landing page.
+- **Halaman Settings Admin** (`/admin/settings`): Halaman baru dengan 4 tab:
+  1. **Ganti Logo** - input URL logo, preview, tombol simpan
+  2. **Kontak Pengurus** - form tambah/edit/hapus daftar pengurus (nama, jabatan, noHP)
+  3. **Manajemen User** - daftar user, tambah user baru (username + password), hapus user
+  4. **Ganti Password** - form ganti password diri sendiri (password lama, password baru, konfirmasi)
+- Tambah link "Pengaturan" di sidebar nav menuju `/admin/settings`
 
 ### Modify
-- `App.tsx`: tambah route `/setup` yang mengarah ke `SetupPage`
-- `LoginPage.tsx`: tambah link kecil di bawah tombol login untuk navigasi ke `/setup`
+- `loginWithCredentials`: cek dari array users bukan single adminCredentials
+- `setAdminCredentials`: ganti menjadi fungsi awal setup (tetap untuk backward compat, hanya bisa saat user list kosong)
+- `AdminLayout`: tambahkan nav item "Pengaturan" dengan icon Settings
+- `App.tsx`: tambah route `/admin/settings`
+- Sidebar: logo area menggunakan logoUrl dari backend (jika ada) atau fallback icon
 
 ### Remove
 - Tidak ada yang dihapus
 
 ## Implementation Plan
 
-1. Buat `src/frontend/src/pages/SetupPage.tsx` dengan:
-   - Form username + password + konfirmasi password
-   - Hash password dengan SHA-256 sebelum dikirim ke backend
-   - Panggil `actor.setAdminCredentials(username, passwordHash)`
-   - Cek apakah admin sudah ada via `actor.getAdminUsername()` - jika sudah ada, tampilkan pesan bahwa setup sudah selesai dan arahkan ke login
-   - Setelah berhasil, redirect ke `/login` dengan toast sukses
-2. Update `App.tsx`: tambah `setupRoute` di `/setup`
-3. Update `LoginPage.tsx`: tambah link kecil menuju `/setup` di bawah tombol submit
+1. **Backend (Motoko)**:
+   - Ganti `adminCredentials : ?AdminCredentials` menjadi `users : Map<Text, UserRecord>` (key = username)
+   - Tipe `UserRecord = { username: Text; passwordHash: Text; namaLengkap: Text; isSuper: Bool }`
+   - Tipe `KontakPengurus = { id: Nat; nama: Text; jabatan: Text; noHP: Text }`
+   - Variabel `logoUrl : Text = ""`
+   - Variabel `kontakPengurus : Map<Nat, KontakPengurus>`
+   - Fungsi baru: `addUser`, `deleteUser`, `getAllUsers`, `changePassword`, `setLogoUrl`, `getLogoUrl`, `getAppSettings` (logo + kontak), `addKontakPengurus`, `updateKontakPengurus`, `deleteKontakPengurus`, `getAllKontakPengurus`
+   - `setAdminCredentials` tetap untuk setup awal (saat users kosong), membuat user pertama dengan isSuper=true
+   - `loginWithCredentials` mencari di map users
+   - Semua fungsi admin-write butuh session token atau caller check
+
+2. **Frontend**:
+   - Buat `pages/admin/SettingsPage.tsx` dengan 4 tab
+   - Update `AdminLayout.tsx`: tambah nav item Pengaturan, load logo dari backend
+   - Update `App.tsx`: tambah route `/admin/settings`
+   - Tambah hooks di `useQueries.ts`: `useGetLogoUrl`, `useSetLogoUrl`, `useGetAllKontakPengurus`, `useAddKontakPengurus`, `useUpdateKontakPengurus`, `useDeleteKontakPengurus`, `useGetAllUsers`, `useAddUser`, `useDeleteUser`, `useChangePassword`

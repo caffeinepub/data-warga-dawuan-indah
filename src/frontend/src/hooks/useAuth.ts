@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
+import { settingsStore } from "../utils/settingsStore";
 import { useActor } from "./useActor";
 
 const SESSION_KEY = "admin_session_token";
+const EXTRA_USER_SESSION_KEY = "extra_user_session";
 
 async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -22,6 +24,22 @@ export function useAuth() {
   const checkSession = useCallback(async (): Promise<boolean> => {
     const token = localStorage.getItem(SESSION_KEY);
     if (!token) return false;
+
+    // Extra user sessions are local-only, always valid while token exists
+    const extraUserSession = localStorage.getItem(EXTRA_USER_SESSION_KEY);
+    if (extraUserSession) {
+      const extraUser = settingsStore.findUser(extraUserSession);
+      if (extraUser) {
+        setIsLoggedIn(true);
+        return true;
+      }
+      // Extra user no longer exists — clear session
+      localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(EXTRA_USER_SESSION_KEY);
+      setIsLoggedIn(false);
+      return false;
+    }
+
     if (!actor) return false;
     try {
       const valid = await actor.validateSession(token);
@@ -50,6 +68,8 @@ export function useAuth() {
       try {
         const hexHash = await hashPassword(password);
         const token = crypto.randomUUID();
+
+        // Try main admin credentials first
         const result = await actor.loginWithCredentials(
           username,
           hexHash,
@@ -57,9 +77,20 @@ export function useAuth() {
         );
         if (result !== null) {
           localStorage.setItem(SESSION_KEY, token);
+          localStorage.removeItem(EXTRA_USER_SESSION_KEY);
           setIsLoggedIn(true);
           return true;
         }
+
+        // Fall back to extra users stored in localStorage
+        const extraUser = settingsStore.findUser(username);
+        if (extraUser && extraUser.passwordHash === hexHash) {
+          localStorage.setItem(SESSION_KEY, token);
+          localStorage.setItem(EXTRA_USER_SESSION_KEY, username);
+          setIsLoggedIn(true);
+          return true;
+        }
+
         setError("Username atau password salah.");
         return false;
       } catch {
@@ -74,7 +105,8 @@ export function useAuth() {
 
   const logout = useCallback(async () => {
     const token = localStorage.getItem(SESSION_KEY);
-    if (token && actor) {
+    const isExtraUser = !!localStorage.getItem(EXTRA_USER_SESSION_KEY);
+    if (token && actor && !isExtraUser) {
       try {
         await actor.logoutSession(token);
       } catch {
@@ -82,6 +114,7 @@ export function useAuth() {
       }
     }
     localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(EXTRA_USER_SESSION_KEY);
     setIsLoggedIn(false);
   }, [actor]);
 

@@ -16,6 +16,7 @@ import DataKKPage from "./pages/admin/DataKKPage";
 import DataWargaPage from "./pages/admin/DataWargaPage";
 import IuranPage from "./pages/admin/IuranPage";
 import LaporanPage from "./pages/admin/LaporanPage";
+import SettingsPage from "./pages/admin/SettingsPage";
 
 // Root route
 const rootRoute = createRootRoute({
@@ -87,6 +88,12 @@ const laporanRoute = createRoute({
   component: LaporanPage,
 });
 
+const settingsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/settings",
+  component: SettingsPage,
+});
+
 // Catch-all redirect to landing
 const notFoundRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -107,6 +114,7 @@ const routeTree = rootRoute.addChildren([
     wargaRoute,
     iuranRoute,
     laporanRoute,
+    settingsRoute,
   ]),
   notFoundRoute,
 ]);

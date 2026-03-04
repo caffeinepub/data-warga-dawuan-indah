@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { settingsStore } from "../utils/settingsStore";
 
 const features = [
   {
@@ -35,7 +36,7 @@ const features = [
   },
 ];
 
-const contacts = [
+const defaultContacts = [
   { role: "Ketua RT 01", name: "Bapak Ahmad Fauzi", phone: "0812-3456-7890" },
   { role: "Ketua RT 02", name: "Bapak Suratman", phone: "0821-9876-5432" },
   { role: "Ketua RW 05", name: "Bapak Hendra Wijaya", phone: "0831-1234-5678" },
@@ -43,6 +44,16 @@ const contacts = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const logoUrl = settingsStore.getLogoUrl();
+  const storedKontak = settingsStore.getKontakPengurus();
+  const contacts =
+    storedKontak.length > 0
+      ? storedKontak.map((k) => ({
+          role: k.jabatan,
+          name: k.nama,
+          phone: k.noHP,
+        }))
+      : defaultContacts;
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,8 +61,16 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border shadow-xs">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-              <Home className="w-5 h-5 text-primary-foreground" />
+            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt="Logo"
+                  className="w-9 h-9 rounded-lg object-cover"
+                />
+              ) : (
+                <Home className="w-5 h-5 text-primary-foreground" />
+              )}
             </div>
             <div>
               <span className="font-display font-bold text-foreground text-sm leading-tight block">

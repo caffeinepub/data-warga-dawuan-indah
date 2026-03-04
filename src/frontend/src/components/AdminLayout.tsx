@@ -9,11 +9,13 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Settings,
   Users,
   X,
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { settingsStore } from "../utils/settingsStore";
 
 const navItems = [
   {
@@ -41,6 +43,12 @@ const navItems = [
     icon: FileText,
     ocid: "nav.laporan_link",
   },
+  {
+    to: "/admin/settings",
+    label: "Pengaturan",
+    icon: Settings,
+    ocid: "nav.settings_link",
+  },
 ];
 
 interface AdminLayoutProps {
@@ -59,6 +67,7 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
+  const logoUrl = settingsStore.getLogoUrl();
 
   async function handleLogout() {
     await logout();
@@ -94,8 +103,16 @@ export default function AdminLayout({
         <div className="p-5 border-b border-sidebar-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center">
-                <Home className="w-5 h-5 text-white" />
+              <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center overflow-hidden">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt="Logo"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Home className="w-5 h-5 text-white" />
+                )}
               </div>
               <div>
                 <p className="text-white font-display font-bold text-sm leading-tight">
